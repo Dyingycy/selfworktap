@@ -4,21 +4,24 @@ export interface CityPreset {
   name: string;
   city: string;
   district: string;
+  landmark?: string;
   lat: number;
   lon: number;
 }
 
 export const CITY_PRESETS: CityPreset[] = [
-  { name: '重庆 (渝中)', city: '重庆', district: '渝中区', lat: 29.5630, lon: 106.5516 },
-  { name: '重庆 (渝北)', city: '重庆', district: '渝北区', lat: 29.7180, lon: 106.6300 },
-  { name: '重庆 (江北)', city: '重庆', district: '江北区', lat: 29.5850, lon: 106.5740 },
-  { name: '重庆 (沙坪坝)', city: '重庆', district: '沙坪坝区', lat: 29.5410, lon: 106.4570 },
-  { name: '重庆 (南岸)', city: '重庆', district: '南岸区', lat: 29.5290, lon: 106.5630 },
-  { name: '成都', city: '成都', district: '锦江区', lat: 30.5728, lon: 104.0668 },
-  { name: '北京', city: '北京', district: '朝阳区', lat: 39.9042, lon: 116.4074 },
-  { name: '上海', city: '上海', district: '浦东新区', lat: 31.2304, lon: 121.4737 },
-  { name: '深圳', city: '深圳', district: '南山区', lat: 22.5431, lon: 114.0579 },
-  { name: '广州', city: '广州', district: '天河区', lat: 23.1291, lon: 113.2644 },
+  { name: '重庆 (渝中)', city: '重庆', district: '渝中区', landmark: '解放碑 / 朝天门', lat: 29.5630, lon: 106.5516 },
+  { name: '重庆 (渝北)', city: '重庆', district: '渝北区', landmark: '中央公园 / 照母山', lat: 29.7180, lon: 106.6300 },
+  { name: '重庆 (江北)', city: '重庆', district: '江北区', landmark: '观音桥 / 江北嘴', lat: 29.5850, lon: 106.5740 },
+  { name: '重庆 (沙坪坝)', city: '重庆', district: '沙坪坝区', landmark: '三峡广场 / 大学城', lat: 29.5410, lon: 106.4570 },
+  { name: '重庆 (南岸)', city: '重庆', district: '南岸区', landmark: '南滨路 / 南山', lat: 29.5290, lon: 106.5630 },
+  { name: '重庆 (九龙坡)', city: '重庆', district: '九龙坡区', landmark: '杨家坪 / 万象城', lat: 29.5080, lon: 106.5100 },
+  { name: '成都', city: '成都', district: '锦江区', landmark: '春熙路 / 太古里', lat: 30.5728, lon: 104.0668 },
+  { name: '北京', city: '北京', district: '朝阳区', landmark: '国贸 / 三里屯', lat: 39.9042, lon: 116.4074 },
+  { name: '上海', city: '上海', district: '浦东新区', landmark: '陆家嘴 / 张江', lat: 31.2304, lon: 121.4737 },
+  { name: '深圳', city: '深圳', district: '南山区', landmark: '科技园 / 深圳湾', lat: 22.5431, lon: 114.0579 },
+  { name: '广州', city: '广州', district: '天河区', landmark: '珠江新城 / 体育西', lat: 23.1291, lon: 113.2644 },
+  { name: '杭州', city: '杭州', district: '西湖区', landmark: '西湖 / 未来科技城', lat: 30.2741, lon: 120.1551 },
 ];
 
 export const DEFAULT_CITY = CITY_PRESETS[0]; // 重庆 (渝中)
