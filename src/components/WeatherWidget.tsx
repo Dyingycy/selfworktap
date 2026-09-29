@@ -104,9 +104,10 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ compact = false })
     return 'from-blue-950/30 via-zinc-900/70 to-zinc-900/90 border-blue-500/20';
   };
 
-  // Group presets into Chongqing and others
+  // Group presets into Chongqing, Luzhou and others
   const chongqingPresets = CITY_PRESETS.filter(p => p.city === '重庆');
-  const otherPresets = CITY_PRESETS.filter(p => p.city !== '重庆');
+  const luzhouPresets = CITY_PRESETS.filter(p => p.city === '泸州');
+  const otherPresets = CITY_PRESETS.filter(p => p.city !== '重庆' && p.city !== '泸州');
 
   return (
     <>
@@ -209,7 +210,9 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ compact = false })
                   <Navigation className="w-3.5 h-3.5 text-blue-400" />
                 </span>
                 <div className="text-xs">
-                  <span className="font-semibold text-blue-300 mr-1.5">山城通勤出行:</span>
+                  <span className="font-semibold text-blue-300 mr-1.5">
+                    {selectedCity.city === '泸州' ? '酒城出行指南:' : selectedCity.city === '重庆' ? '山城通勤出行:' : '通勤出行指南:'}
+                  </span>
                   <span className="text-zinc-200">{weather.advice.commute}</span>
                 </div>
               </div>
@@ -283,7 +286,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ compact = false })
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-white">选择常驻区域 / 城市</h3>
-                  <p className="text-[11px] text-zinc-400">切换后将自动更新实时天气与山城出行指南</p>
+                  <p className="text-[11px] text-zinc-400">切换后将自动更新实时天气与专属出行指南</p>
                 </div>
               </div>
               <button
@@ -329,7 +332,39 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ compact = false })
                 </div>
               </div>
 
-              {/* Section 2: Other Major Cities */}
+              {/* Section 2: Luzhou City */}
+              <div>
+                <div className="text-[11px] font-bold text-sky-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                  <span>🍶 泸州核心辖区 (川南酒城)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {luzhouPresets.map((preset) => {
+                    const isSelected = selectedCity.name === preset.name;
+                    return (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => handleSelectCity(preset)}
+                        className={`p-3 rounded-2xl text-left border transition-all flex flex-col gap-1 cursor-pointer active:scale-95 ${
+                          isSelected
+                            ? 'bg-blue-600/30 border-blue-500 text-blue-200 ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10'
+                            : 'bg-white/5 border-white/10 hover:bg-white/10 text-zinc-200 hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-xs text-white">{preset.name}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />}
+                        </div>
+                        {preset.landmark && (
+                          <span className="text-[10px] text-zinc-400 truncate">{preset.landmark}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Section 3: Other Major Cities */}
               <div>
                 <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                   <span>🏙️ 国内常用主要城市</span>

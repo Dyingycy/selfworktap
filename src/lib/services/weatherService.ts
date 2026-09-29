@@ -10,12 +10,19 @@ export interface CityPreset {
 }
 
 export const CITY_PRESETS: CityPreset[] = [
+  // 重庆
   { name: '重庆 (渝中)', city: '重庆', district: '渝中区', landmark: '解放碑 / 朝天门', lat: 29.5630, lon: 106.5516 },
   { name: '重庆 (渝北)', city: '重庆', district: '渝北区', landmark: '中央公园 / 照母山', lat: 29.7180, lon: 106.6300 },
   { name: '重庆 (江北)', city: '重庆', district: '江北区', landmark: '观音桥 / 江北嘴', lat: 29.5850, lon: 106.5740 },
   { name: '重庆 (沙坪坝)', city: '重庆', district: '沙坪坝区', landmark: '三峡广场 / 大学城', lat: 29.5410, lon: 106.4570 },
   { name: '重庆 (南岸)', city: '重庆', district: '南岸区', landmark: '南滨路 / 南山', lat: 29.5290, lon: 106.5630 },
   { name: '重庆 (九龙坡)', city: '重庆', district: '九龙坡区', landmark: '杨家坪 / 万象城', lat: 29.5080, lon: 106.5100 },
+
+  // 泸州 (酒城定制)
+  { name: '泸州 (江阳)', city: '泸州', district: '江阳区', landmark: '国窖广场 / 滨江路', lat: 28.8719, lon: 105.4423 },
+  { name: '泸州 (龙马潭)', city: '泸州', district: '龙马潭区', landmark: '万达广场 / 两江汇', lat: 28.9100, lon: 105.4300 },
+
+  // 其他常用主要城市
   { name: '成都', city: '成都', district: '锦江区', landmark: '春熙路 / 太古里', lat: 30.5728, lon: 104.0668 },
   { name: '北京', city: '北京', district: '朝阳区', landmark: '国贸 / 三里屯', lat: 39.9042, lon: 116.4074 },
   { name: '上海', city: '上海', district: '浦东新区', landmark: '陆家嘴 / 张江', lat: 31.2304, lon: 121.4737 },
@@ -74,19 +81,31 @@ export function generateWeatherAdvice(
   // Commute advice
   let commute = '';
   if (isRain) {
-    commute = cityName.includes('重庆')
-      ? '山城多坡台阶湿滑，建议乘坐轨道交通/轻轨出行，务必随身携带雨伞 🌂'
-      : '今日有降水，路面湿滑，出门请备好雨伞并优先选择地铁或公交 🌂';
+    if (cityName.includes('重庆')) {
+      commute = '山城多坡台阶湿滑，建议乘坐轨道交通/轻轨出行，务必随身携带雨伞 🌂';
+    } else if (cityName.includes('泸州')) {
+      commute = '酒城两江汇聚水汽丰沛，滨江与桥梁路面湿滑，出行请备好雨具并小心慢行 🌂';
+    } else {
+      commute = '今日有降水，路面湿滑，出门请备好雨伞并优先选择地铁或公交 🌂';
+    }
   } else if (isFog) {
-    commute = cityName.includes('重庆')
-      ? '江雾弥漫能见度稍低，跨江桥梁与盘山道行车请减速慢行保持车距 🌫️'
-      : '雾气弥漫能见度低，早晚通勤出行请注意交通安全与保暖 🌫️';
+    if (cityName.includes('重庆')) {
+      commute = '江雾弥漫能见度稍低，跨江桥梁与盘山道行车请减速慢行保持车距 🌫️';
+    } else if (cityName.includes('泸州')) {
+      commute = '长江与沱江交汇易生江雾，滨江路与各跨江大桥能见度低，行车请减速慢行 🌫️';
+    } else {
+      commute = '雾气弥漫能见度低，早晚通勤出行请注意交通安全与保暖 🌫️';
+    }
   } else if (isHot) {
     commute = '午后日照充足气温较高，外出注意防晒遮阳并及时补充水分 🥤';
   } else {
-    commute = cityName.includes('重庆')
-      ? '气候清爽舒适，山城步道漫步或轻轨通勤体验俱佳 🚶‍♂️'
-      : '微风舒适体感清爽，适宜各类户外及日常通勤出行 🚶‍♂️';
+    if (cityName.includes('重庆')) {
+      commute = '气候清爽舒适，山城步道漫步或轻轨通勤体验俱佳 🚶‍♂️';
+    } else if (cityName.includes('泸州')) {
+      commute = '江风微凉空气清新，酒城滨江路散步或日常出行体感舒适 🚶‍♂️';
+    } else {
+      commute = '微风舒适体感清爽，适宜各类户外及日常通勤出行 🚶‍♂️';
+    }
   }
 
   // Clothing advice
@@ -139,7 +158,24 @@ function mapWttrCodeToWmo(codeStr: string): number {
 
 // Fallback to wttr.in (works globally and directly in mainland China)
 async function fetchFromWttr(cityName: string, district: string): Promise<WeatherData> {
-  const query = cityName.includes('重庆') ? 'Chongqing' : encodeURIComponent(cityName);
+  let query = 'Chongqing';
+  if (cityName.includes('泸州')) {
+    query = 'Luzhou';
+  } else if (cityName.includes('成都')) {
+    query = 'Chengdu';
+  } else if (cityName.includes('北京')) {
+    query = 'Beijing';
+  } else if (cityName.includes('上海')) {
+    query = 'Shanghai';
+  } else if (cityName.includes('深圳')) {
+    query = 'Shenzhen';
+  } else if (cityName.includes('广州')) {
+    query = 'Guangzhou';
+  } else if (cityName.includes('杭州')) {
+    query = 'Hangzhou';
+  } else if (!cityName.includes('重庆')) {
+    query = encodeURIComponent(cityName);
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 6000);
 
