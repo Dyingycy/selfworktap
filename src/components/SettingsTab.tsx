@@ -19,20 +19,23 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onClearCache }) => {
   }, []);
 
   const handleSaveKey = () => {
-    localStorage.setItem('techradar_gemini_key', apiKey.trim());
+    const clean = apiKey.trim().replace(/^[\s"']+|[\s"']+$/g, '');
+    setApiKey(clean);
+    localStorage.setItem('techradar_gemini_key', clean);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
 
   const handleTestKey = async () => {
-    if (!apiKey.trim()) {
+    const clean = apiKey.trim().replace(/^[\s"']+|[\s"']+$/g, '');
+    if (!clean) {
       setTestStatus('error');
       setTestMessage('请先输入 Gemini API Key');
       return;
     }
 
     setTestStatus('testing');
-    setTestMessage('正在测试连接 Google Gemini API...');
+    setTestMessage('正在通过云端边缘节点测试连接 Google Gemini API...');
 
     try {
       const res = await fetch('/api/ai/ask', {
@@ -42,17 +45,17 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onClearCache }) => {
           title: '连接测试',
           content: '这是一次连通性验证。',
           question: '请用5个字回复：连接成功',
-          apiKey: apiKey.trim(),
+          apiKey: clean,
         }),
       });
 
       const json = await res.json();
-      if (json.success) {
+      if (json.success && !json.data?.answer?.includes('分析时遇到问题')) {
         setTestStatus('success');
-        setTestMessage('🎉 Gemini API 连接成功！已可正常使用 AI 解读与晨报。');
+        setTestMessage(`🎉 Gemini API 连接成功！已可正常使用 AI 解读与晨报。`);
       } else {
         setTestStatus('error');
-        setTestMessage(`❌ 连接失败: ${json.error || '密钥无效'}`);
+        setTestMessage(`❌ 连接失败: ${json.error || json.data?.answer || '密钥无效'}`);
       }
     } catch (e: any) {
       setTestStatus('error');

@@ -6,6 +6,7 @@ import { FocusTodoWidget } from '@/components/FocusTodoWidget';
 import { PomodoroWidget } from '@/components/PomodoroWidget';
 import { ScratchpadWidget } from '@/components/ScratchpadWidget';
 import { QuickLauncherWidget } from '@/components/QuickLauncherWidget';
+import { WeatherWidget } from '@/components/WeatherWidget';
 import { Sparkles, ArrowRight, Sun, Sunset, Moon, Sunrise } from 'lucide-react';
 
 interface HomeWorkbenchTabProps {
@@ -84,7 +85,10 @@ export const HomeWorkbenchTab: React.FC<HomeWorkbenchTabProps> = ({
         </div>
       </div>
 
-      {/* 2. Today's Tech Briefing Quick Highlight Bar */}
+      {/* 2. Weather & Commute Assistant (Chongqing by default) */}
+      <WeatherWidget />
+
+      {/* 3. Today's Tech Briefing Quick Highlight Bar */}
       {briefing && (
         <div
           onClick={() => onNavigateToTab('radar')}

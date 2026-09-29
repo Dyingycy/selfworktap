@@ -83,3 +83,39 @@ export interface AiChatMessage {
   content: string;
   timestamp: string;
 }
+
+// === Weather & Commute Types ===
+
+export interface DailyForecast {
+  date: string;
+  dayName: string;
+  weatherCode: number;
+  condition: string;
+  tempMax: number;
+  tempMin: number;
+  precipProb: number;
+}
+
+export interface WeatherAdvice {
+  commute: string;
+  clothing: string;
+  brief: string;
+}
+
+export interface WeatherData {
+  city: string;
+  district?: string;
+  temperature: number;
+  apparentTemperature: number;
+  humidity: number;
+  windSpeed: number;
+  weatherCode: number;
+  condition: string;
+  isDay: boolean;
+  tempMax: number;
+  tempMin: number;
+  precipProb: number;
+  advice: WeatherAdvice;
+  daily: DailyForecast[];
+  updatedAt: string;
+}

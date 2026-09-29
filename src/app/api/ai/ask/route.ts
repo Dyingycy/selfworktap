@@ -16,6 +16,12 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await askGemini(title, content || '', question, apiKey);
+    if (result.answer.startsWith('分析时遇到问题:')) {
+      return NextResponse.json(
+        { success: false, error: result.answer, data: result },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({
       success: true,
       data: result,
