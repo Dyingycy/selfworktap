@@ -4,10 +4,39 @@ import { DailyBriefing, NewsArticle } from '@/types';
 // In-memory cache for daily briefing to avoid repeatedly consuming API quotas
 let cachedBriefing: { date: string; data: DailyBriefing } | null = null;
 
+// Multi-model high-throughput fallback order
+const CANDIDATE_MODELS = [
+  'gemini-3.5-flash-lite',
+  'gemini-3.1-flash-lite',
+  'gemini-flash-lite-latest',
+  'gemini-3.8-flash',
+];
+
 function getClient(userApiKey?: string): GoogleGenAI | null {
-  const key = userApiKey || process.env.GEMINI_API_KEY;
+  const key = userApiKey?.trim();
   if (!key) return null;
   return new GoogleGenAI({ apiKey: key });
+}
+
+async function executeGeminiWithFallback(client: GoogleGenAI, prompt: string): Promise<string> {
+  let lastErr: any = null;
+
+  for (const model of CANDIDATE_MODELS) {
+    try {
+      const interaction = await client.interactions.create({
+        model,
+        input: prompt,
+      });
+      if (interaction && interaction.output_text) {
+        return interaction.output_text;
+      }
+    } catch (err: any) {
+      lastErr = err;
+      console.warn(`[Gemini Fallback] Model ${model} failed, trying next:`, err.message?.slice(0, 80));
+    }
+  }
+
+  throw lastErr || new Error('所有 Gemini 备用模型均无法响应');
 }
 
 export async function generateDailyBriefing(
@@ -66,23 +95,7 @@ ${articlesContext}
 }`;
 
   try {
-    let rawText = '';
-    try {
-      // Primary: Try interactions API with gemini-3.8-flash
-      const interaction = await client.interactions.create({
-        model: 'gemini-3.8-flash',
-        input: prompt,
-      });
-      rawText = interaction.output_text || '';
-    } catch {
-      // Fallback: Try models.generateContent with gemini-flash-latest / gemini-2.5-flash
-      const resp = await client.models.generateContent({
-        model: 'gemini-flash-latest',
-        contents: prompt,
-      });
-      rawText = resp.text || '';
-    }
-
+    const rawText = await executeGeminiWithFallback(client, prompt);
     const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
     const parsed = JSON.parse(cleanJson);
 
@@ -119,12 +132,12 @@ export async function askGemini(
     };
   }
 
-  const prompt = `你是一位客观、敏锐且通俗易懂的资深科技分析师。
-针对以下这则科技资讯/热点：
+  const prompt = `你是一位客观、敏锐且通俗易懂的资深科技分析师与个人随身外脑。
+当前上下文或资讯：
 【标题】：${title}
 【内容详情】：${content}
 
-用户提出了以下问题：
+用户的问题或任务：
 "${question}"
 
 请做出专业、切中要害、逻辑清晰的解答。
@@ -140,32 +153,31 @@ export async function askGemini(
 }`;
 
   try {
-    let rawText = '';
-    try {
-      const interaction = await client.interactions.create({
-        model: 'gemini-3.8-flash',
-        input: prompt,
-      });
-      rawText = interaction.output_text || '';
-    } catch {
-      const resp = await client.models.generateContent({
-        model: 'gemini-flash-latest',
-        contents: prompt,
-      });
-      rawText = resp.text || '';
-    }
-
+    const rawText = await executeGeminiWithFallback(client, prompt);
     const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
-    return {
-      answer: parsed.answer || '已生成深度解读。',
-      keyPoints: parsed.keyPoints || [],
-    };
+    
+    try {
+      const parsed = JSON.parse(cleanJson);
+      return {
+        answer: parsed.answer || rawText,
+        keyPoints: parsed.keyPoints || [],
+      };
+    } catch {
+      // Fallback if model returned plain markdown instead of JSON
+      return {
+        answer: rawText,
+        keyPoints: ['已完成分析解答'],
+      };
+    }
   } catch (error: any) {
     console.error('Gemini ask error:', error);
+    let friendly = error.message || '网络连接超时';
+    if (friendly.includes('429') || friendly.includes('quota') || friendly.includes('RESOURCE_EXHAUSTED')) {
+      friendly = '当前调用过于频繁，触发了 Google 的每分钟频次保护，请稍等 30 秒后再试。';
+    }
     return {
-      answer: `分析时遇到问题: ${error.message || '请检查 API Key 是否有效或网络连接'}`,
-      keyPoints: ['调用异常', '请在设置中检查 Gemini Key'],
+      answer: `分析时遇到问题: ${friendly}`,
+      keyPoints: ['调用异常', '请稍候重试'],
     };
   }
 }
@@ -179,7 +191,7 @@ function getDefaultBriefing(articles: NewsArticle[]): DailyBriefing {
     title: '今日科技前沿与数智生活速报',
     overview:
       '今日全网科技关注点聚焦于下一代操作系统变革、大模型智能体实用落地以及数码硬件供应链的最新动态。极客生态呈现出向实用工具化与微型端侧 AI 全面迁移的清晰趋势。',
-    highlights: top3.map((a, i) => ({
+    highlights: top3.map((a) => ({
       title: a.title,
       takeaway: a.summary.slice(0, 48) + '...',
       impact: `来自【${a.sourceName}】，展现了当下开发者与大众热议的代表性方向。`,

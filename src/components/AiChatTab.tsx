@@ -29,7 +29,7 @@ export const AiChatTab: React.FC = () => {
           id: 'welcome',
           role: 'assistant',
           content:
-            '你好！我是你的专属科技工作台随身 AI 智囊，由 Google Gemini 3.8 Flash 强力驱动。\n\n你可以随时向我提问、整理周报、头脑风暴方案或解读复杂技术。请随时告诉我你想做什么！',
+            '你好！我是你的专属科技工作台随身 AI 智囊，由 Google Gemini 强力驱动。\n\n你可以随时向我提问、整理周报、头脑风暴方案或解读复杂技术。请随时告诉我你想做什么！',
           timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages([welcome]);
@@ -130,7 +130,7 @@ export const AiChatTab: React.FC = () => {
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-white">Gemini 3.8 Flash 随身外脑</h3>
+            <h3 className="text-xs font-bold text-white">Gemini AI 随身外脑 (高可用版)</h3>
           </div>
         </div>
 
