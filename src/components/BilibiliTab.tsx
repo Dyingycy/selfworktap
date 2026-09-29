@@ -11,6 +11,60 @@ interface BilibiliTabProps {
   onAddNewsToTodo?: (title: string) => void;
 }
 
+interface BilibiliVideoCoverProps {
+  pic: string;
+  title: string;
+}
+
+const BilibiliVideoCover: React.FC<BilibiliVideoCoverProps> = ({ pic, title }) => {
+  const cleanPic = pic.startsWith('//')
+    ? `https:${pic}`
+    : pic.startsWith('http:')
+    ? pic.replace('http:', 'https:')
+    : pic;
+
+  const [src, setSrc] = useState(cleanPic);
+  const [loadStage, setLoadStage] = useState<'direct' | 'proxy' | 'failed'>('direct');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const handleError = () => {
+    if (loadStage === 'direct') {
+      setLoadStage('proxy');
+      setSrc(`/api/proxy-image?url=${encodeURIComponent(cleanPic)}`);
+    } else {
+      setLoadStage('failed');
+    }
+  };
+
+  return (
+    <div className="relative w-20 h-14 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-white/5 flex items-center justify-center">
+      {loadStage !== 'failed' ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={title}
+          referrerPolicy="no-referrer"
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading="lazy"
+          onLoad={() => setIsLoaded(true)}
+          onError={handleError}
+        />
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-pink-950/30 to-purple-950/30 text-pink-400">
+          <Tv className="w-5 h-5 opacity-70" />
+        </div>
+      )}
+
+      {/* Hover Play icon indicator */}
+      <div className="absolute inset-0 bg-black/25 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+        <Play className="w-4 h-4 text-white fill-white" />
+      </div>
+    </div>
+  );
+};
+
 export const BilibiliTab: React.FC<BilibiliTabProps> = ({
   items,
   isLoading,
@@ -130,21 +184,8 @@ export const BilibiliTab: React.FC<BilibiliTabProps> = ({
                   {item.position}
                 </span>
 
-                {/* Thumbnail if present */}
-                {item.pic && (
-                  <div className="relative w-20 h-14 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-white/5">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.pic.startsWith('http:') ? item.pic.replace('http:', 'https:') : item.pic}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                      <Play className="w-4 h-4 text-white fill-white" />
-                    </div>
-                  </div>
-                )}
+                {/* Video Cover Thumbnail */}
+                {item.pic && <BilibiliVideoCover pic={item.pic} title={item.title} />}
 
                 {/* Title & Info */}
                 <div className="min-w-0 flex-1">
