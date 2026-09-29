@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { NewsArticle, NewsSource } from '@/types';
-import { Search, Flame, ExternalLink, Sparkles, Share2, Filter } from 'lucide-react';
+import { Search, Flame, ExternalLink, Sparkles, Share2, Filter, Plus } from 'lucide-react';
 
 interface TechNewsTabProps {
   articles: NewsArticle[];
@@ -11,6 +11,7 @@ interface TechNewsTabProps {
   onSelectSource: (source: NewsSource) => void;
   onOpenAskAi: (title: string, content: string) => void;
   onOpenShare: (title: string, summary: string, url: string, source: string) => void;
+  onAddNewsToTodo?: (title: string) => void;
 }
 
 export const TechNewsTab: React.FC<TechNewsTabProps> = ({
@@ -20,6 +21,7 @@ export const TechNewsTab: React.FC<TechNewsTabProps> = ({
   onSelectSource,
   onOpenAskAi,
   onOpenShare,
+  onAddNewsToTodo,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -197,6 +199,17 @@ export const TechNewsTab: React.FC<TechNewsTabProps> = ({
                     <Share2 className="w-3 h-3 text-zinc-400" />
                     <span>分享</span>
                   </button>
+
+                  {onAddNewsToTodo && (
+                    <button
+                      onClick={() => onAddNewsToTodo(article.title)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 active:scale-95 transition-all text-xs"
+                      title="存为今日待办"
+                    >
+                      <Plus className="w-3 h-3 text-emerald-400" />
+                      <span>待办</span>
+                    </button>
+                  )}
                 </div>
 
                 <a

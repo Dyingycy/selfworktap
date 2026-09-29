@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, RefreshCw, Cpu } from 'lucide-react';
+import { Sparkles, RefreshCw } from 'lucide-react';
 
 interface HeaderProps {
   onRefresh: () => void;
@@ -19,27 +19,27 @@ export const Header: React.FC<HeaderProps> = ({ onRefresh, isRefreshing, activeT
 
   const getTabTitle = () => {
     switch (activeTab) {
-      case 'brief':
-        return '今日科技早报';
-      case 'news':
-        return '科技热点全览';
-      case 'douyin':
-        return '抖音实时热点';
+      case 'workbench':
+        return '个人实用工作台';
+      case 'radar':
+        return '科技与热点雷达';
+      case 'aichat':
+        return 'Gemini AI 智囊';
       case 'settings':
         return '工作台设置';
       default:
-        return '科技工作台';
+        return '个人工作台';
     }
   };
 
   return (
     <header className="sticky top-0 z-40 w-full glass-header safe-top transition-all">
-      <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Left: Date & Subtitle */}
+      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Left: Date & Title */}
         <div className="flex flex-col">
           <span className="text-[11px] font-medium text-zinc-400 tracking-wider uppercase flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            {dateStr} · TECH RADAR
+            {dateStr} · PERSONAL OS
           </span>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             {getTabTitle()}
@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onRefresh, isRefreshing, activeT
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          {activeTab !== 'settings' && (
+          {activeTab !== 'settings' && activeTab !== 'aichat' && (
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
@@ -63,7 +63,8 @@ export const Header: React.FC<HeaderProps> = ({ onRefresh, isRefreshing, activeT
 
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
             <Sparkles className="w-3 h-3 text-purple-400" />
-            <span>Gemini AI</span>
+            <span className="hidden sm:inline">Gemini 3.8</span>
+            <span>AI 已连接</span>
           </div>
         </div>
       </div>

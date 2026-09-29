@@ -3,19 +3,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { BottomTabBar } from '@/components/BottomTabBar';
-import { DailyBriefTab } from '@/components/DailyBriefTab';
-import { TechNewsTab } from '@/components/TechNewsTab';
-import { DouyinTab } from '@/components/DouyinTab';
+import { HomeWorkbenchTab } from '@/components/HomeWorkbenchTab';
+import { RadarHubTab } from '@/components/RadarHubTab';
+import { AiChatTab } from '@/components/AiChatTab';
 import { SettingsTab } from '@/components/SettingsTab';
 import { AskAiModal } from '@/components/AskAiModal';
 import { ShareModal } from '@/components/ShareModal';
-import { NewsArticle, NewsSource, DouyinHotItem, DailyBriefing } from '@/types';
+import { NewsArticle, NewsSource, DouyinHotItem, DailyBriefing, TodoItem } from '@/types';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('brief');
+  const [activeTab, setActiveTab] = useState<'workbench' | 'radar' | 'aichat' | 'settings'>('workbench');
   const [selectedSource, setSelectedSource] = useState<NewsSource>('all');
 
-  // Data states
+  // Workbench Data
+  const [todos, setTodos] = useState<TodoItem[]>([]);
+
+  // Radar Data states
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [douyinItems, setDouyinItems] = useState<DouyinHotItem[]>([]);
   const [briefing, setBriefing] = useState<DailyBriefing | null>(null);
@@ -25,6 +28,9 @@ export default function Home() {
   const [isLoadingDouyin, setIsLoadingDouyin] = useState(false);
   const [isLoadingBrief, setIsLoadingBrief] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Toast notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Modals
   const [askAiState, setAskAiState] = useState<{
@@ -41,9 +47,17 @@ export default function Home() {
     source: string;
   }>({ isOpen: false, title: '', summary: '', url: '', source: '' });
 
-  // 1. Load cached data from localStorage on first mount for instant 0ms startup
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  // 1. Load cached data from localStorage on first mount
   useEffect(() => {
     try {
+      const cachedTodos = localStorage.getItem('techradar_todos');
+      if (cachedTodos) setTodos(JSON.parse(cachedTodos));
+
       const cachedNews = localStorage.getItem('techradar_cache_news');
       if (cachedNews) setArticles(JSON.parse(cachedNews));
 
@@ -128,15 +142,29 @@ export default function Home() {
     fetchNews(src);
   };
 
+  // Convert news article to todo
+  const handleAddNewsToTodo = (newsTitle: string) => {
+    const newItem: TodoItem = {
+      id: `todo-${Date.now()}`,
+      title: `研读资讯: ${newsTitle}`,
+      completed: false,
+      priority: 'medium',
+      createdAt: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      sourceNewsTitle: newsTitle,
+    };
+    const updated = [newItem, ...todos];
+    setTodos(updated);
+    localStorage.setItem('techradar_todos', JSON.stringify(updated));
+    showToast('🎉 已成功将该热点加入【今日专注待办】！');
+  };
+
   // Top header refresh button
   const handleGlobalRefresh = async () => {
     setIsRefreshing(true);
-    if (activeTab === 'brief') {
-      await fetchBriefing(true);
-    } else if (activeTab === 'news') {
-      await fetchNews(selectedSource);
-    } else if (activeTab === 'douyin') {
-      await fetchDouyin();
+    if (activeTab === 'workbench') {
+      await Promise.all([fetchBriefing(false), fetchNews('all')]);
+    } else if (activeTab === 'radar') {
+      await Promise.all([fetchBriefing(true), fetchNews(selectedSource), fetchDouyin()]);
     }
     setIsRefreshing(false);
   };
@@ -146,7 +174,7 @@ export default function Home() {
     localStorage.removeItem('techradar_cache_news');
     localStorage.removeItem('techradar_cache_douyin');
     localStorage.removeItem('techradar_cache_brief');
-    alert('缓存已清除，正在重新拉取最新数据...');
+    showToast('本地快照已清除，正在重新拉取最新数据...');
     fetchNews(selectedSource);
     fetchDouyin();
     fetchBriefing(true);
@@ -154,8 +182,8 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-black text-white flex flex-col font-sans pb-24">
-      {/* Top Background Ambient Glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md h-64 bg-gradient-to-b from-blue-900/10 via-purple-900/5 to-transparent pointer-events-none -z-10" />
+      {/* Top Ambient Glow */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-72 bg-gradient-to-b from-blue-900/15 via-purple-900/10 to-transparent pointer-events-none -z-10" />
 
       {/* iOS Header */}
       <Header
@@ -164,51 +192,58 @@ export default function Home() {
         onRefresh={handleGlobalRefresh}
       />
 
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-zinc-900/95 border border-emerald-500/40 text-emerald-300 text-xs font-medium shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
+          {toastMessage}
+        </div>
+      )}
+
       {/* Main Content Area */}
-      <main className="flex-1 max-w-md w-full mx-auto px-4 pt-3">
-        {activeTab === 'brief' && (
-          <DailyBriefTab
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 pt-3">
+        {/* Tab 1: 🏠 工作台 (Workbench) */}
+        {activeTab === 'workbench' && (
+          <HomeWorkbenchTab
             briefing={briefing}
-            isLoading={isLoadingBrief && !briefing}
-            onRefresh={(force) => fetchBriefing(force)}
-            onOpenAskAi={(title, content) =>
-              setAskAiState({ isOpen: true, title, content })
-            }
+            onNavigateToTab={(tab) => setActiveTab(tab as any)}
+            todos={todos}
+            onTodosChange={setTodos}
           />
         )}
 
-        {activeTab === 'news' && (
-          <TechNewsTab
+        {/* Tab 2: 📰 情报雷达 (Radar: 早报/热榜/抖音) */}
+        {activeTab === 'radar' && (
+          <RadarHubTab
+            briefing={briefing}
             articles={articles}
-            isLoading={isLoadingNews && articles.length === 0}
+            douyinItems={douyinItems}
+            isLoadingBrief={isLoadingBrief && !briefing}
+            isLoadingNews={isLoadingNews && articles.length === 0}
+            isLoadingDouyin={isLoadingDouyin && douyinItems.length === 0}
             selectedSource={selectedSource}
             onSelectSource={handleSelectSource}
+            onRefreshBrief={(force) => fetchBriefing(force)}
             onOpenAskAi={(title, content) =>
               setAskAiState({ isOpen: true, title, content })
             }
             onOpenShare={(title, summary, url, source) =>
               setShareState({ isOpen: true, title, summary, url, source })
             }
+            onAddNewsToTodo={handleAddNewsToTodo}
           />
         )}
 
-        {activeTab === 'douyin' && (
-          <DouyinTab
-            items={douyinItems}
-            isLoading={isLoadingDouyin && douyinItems.length === 0}
-            onOpenAskAi={(title, content) =>
-              setAskAiState({ isOpen: true, title, content })
-            }
-          />
-        )}
+        {/* Tab 3: 🤖 AI 智囊 (Gemini Copilot) */}
+        {activeTab === 'aichat' && <AiChatTab />}
 
+        {/* Tab 4: ⚙️ 设置 (Settings) */}
         {activeTab === 'settings' && (
           <SettingsTab onClearCache={handleClearCache} />
         )}
       </main>
 
-      {/* Floating iOS Bottom Tab Bar */}
-      <BottomTabBar activeTab={activeTab} onChangeTab={setActiveTab} />
+      {/* Floating Bottom Navigation Bar */}
+      <BottomTabBar activeTab={activeTab} onChangeTab={(tab) => setActiveTab(tab as any)} />
 
       {/* Modals */}
       <AskAiModal

@@ -19,7 +19,7 @@ export interface DouyinHotItem {
   hotValue: number;
   label?: string; // '新' | '热' | '爆'
   isTech: boolean;
-  categoryTag: string; // 'AI前沿' | '数码数智' | '硬核科技' | '全网热门'
+  categoryTag: string; // 'AI前沿' | '数码新品' | '数智出行' | '全网热搜'
   url: string;
   videoCount?: number;
   aiTakeaway?: string;
@@ -54,4 +54,32 @@ export interface AskAiResponse {
   answer: string;
   keyPoints?: string[];
   takeaway?: string;
+}
+
+// === Personal Workbench Extensions ===
+
+export type TodoPriority = 'high' | 'medium' | 'low';
+
+export interface TodoItem {
+  id: string;
+  title: string;
+  completed: boolean;
+  priority: TodoPriority;
+  createdAt: string;
+  sourceNewsTitle?: string;
+}
+
+export interface QuickLink {
+  id: string;
+  title: string;
+  url: string;
+  icon: string; // Emoji or label
+  color?: string;
+}
+
+export interface AiChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
 }
