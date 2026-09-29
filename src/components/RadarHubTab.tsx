@@ -1,21 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DailyBriefing, NewsArticle, NewsSource, DouyinHotItem } from '@/types';
+import { DailyBriefing, WeiboHotItem, BilibiliHotItem, DouyinHotItem } from '@/types';
 import { DailyBriefTab } from '@/components/DailyBriefTab';
-import { TechNewsTab } from '@/components/TechNewsTab';
+import { WeiboTab } from '@/components/WeiboTab';
+import { BilibiliTab } from '@/components/BilibiliTab';
 import { DouyinTab } from '@/components/DouyinTab';
-import { Sparkles, Newspaper, Flame } from 'lucide-react';
+import { Sparkles, Flame, Tv, MessageSquare } from 'lucide-react';
 
 interface RadarHubTabProps {
   briefing: DailyBriefing | null;
-  articles: NewsArticle[];
+  weiboItems: WeiboHotItem[];
+  bilibiliItems: BilibiliHotItem[];
   douyinItems: DouyinHotItem[];
   isLoadingBrief: boolean;
-  isLoadingNews: boolean;
+  isLoadingWeibo: boolean;
+  isLoadingBilibili: boolean;
   isLoadingDouyin: boolean;
-  selectedSource: NewsSource;
-  onSelectSource: (source: NewsSource) => void;
   onRefreshBrief: (force?: boolean) => void;
   onOpenAskAi: (title: string, content: string) => void;
   onOpenShare: (title: string, summary: string, url: string, source: string) => void;
@@ -24,29 +25,30 @@ interface RadarHubTabProps {
 
 export const RadarHubTab: React.FC<RadarHubTabProps> = ({
   briefing,
-  articles,
+  weiboItems,
+  bilibiliItems,
   douyinItems,
   isLoadingBrief,
-  isLoadingNews,
+  isLoadingWeibo,
+  isLoadingBilibili,
   isLoadingDouyin,
-  selectedSource,
-  onSelectSource,
   onRefreshBrief,
   onOpenAskAi,
   onOpenShare,
   onAddNewsToTodo,
 }) => {
-  const [subTab, setSubTab] = useState<'brief' | 'news' | 'douyin'>('brief');
+  const [subTab, setSubTab] = useState<'brief' | 'weibo' | 'bilibili' | 'douyin'>('brief');
 
   const subTabs = [
-    { id: 'brief', label: '今日早报', icon: Sparkles },
-    { id: 'news', label: '科技热榜', icon: Newspaper },
-    { id: 'douyin', label: '抖音热搜', icon: Flame },
+    { id: 'brief', label: 'AI 早报', icon: Sparkles, color: 'text-amber-400' },
+    { id: 'weibo', label: '微博热搜', icon: MessageSquare, color: 'text-orange-400' },
+    { id: 'bilibili', label: 'B站热门', icon: Tv, color: 'text-pink-400' },
+    { id: 'douyin', label: '抖音热搜', icon: Flame, color: 'text-rose-400' },
   ];
 
   return (
     <div className="space-y-4">
-      {/* iOS Segmented Sub-Navbar */}
+      {/* Segmented Sub-Navbar for Mainstream Domestic Platforms */}
       <div className="p-1 bg-zinc-900/90 rounded-2xl border border-white/10 flex items-center justify-around">
         {subTabs.map((tab) => {
           const Icon = tab.icon;
@@ -61,14 +63,14 @@ export const RadarHubTab: React.FC<RadarHubTabProps> = ({
                   : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : tab.color}`} />
               <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Sub views */}
+      {/* Sub view 1: AI 全网早报 */}
       {subTab === 'brief' && (
         <DailyBriefTab
           briefing={briefing}
@@ -78,18 +80,27 @@ export const RadarHubTab: React.FC<RadarHubTabProps> = ({
         />
       )}
 
-      {subTab === 'news' && (
-        <TechNewsTab
-          articles={articles}
-          isLoading={isLoadingNews && articles.length === 0}
-          selectedSource={selectedSource}
-          onSelectSource={onSelectSource}
+      {/* Sub view 2: 微博实时热搜 */}
+      {subTab === 'weibo' && (
+        <WeiboTab
+          items={weiboItems}
+          isLoading={isLoadingWeibo && weiboItems.length === 0}
           onOpenAskAi={onOpenAskAi}
-          onOpenShare={onOpenShare}
           onAddNewsToTodo={onAddNewsToTodo}
         />
       )}
 
+      {/* Sub view 3: B站全站热门 */}
+      {subTab === 'bilibili' && (
+        <BilibiliTab
+          items={bilibiliItems}
+          isLoading={isLoadingBilibili && bilibiliItems.length === 0}
+          onOpenAskAi={onOpenAskAi}
+          onAddNewsToTodo={onAddNewsToTodo}
+        />
+      )}
+
+      {/* Sub view 4: 抖音实时热搜 */}
       {subTab === 'douyin' && (
         <DouyinTab
           items={douyinItems}

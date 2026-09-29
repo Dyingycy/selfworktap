@@ -1,4 +1,4 @@
-export type NewsSource = 'all' | '36kr' | 'sspai' | 'v2ex' | 'github' | 'hackernews';
+export type NewsSource = 'all' | 'weibo' | 'bilibili' | 'douyin' | '36kr' | 'sspai' | 'v2ex' | 'github';
 
 export interface NewsArticle {
   id: string;
@@ -11,6 +11,31 @@ export interface NewsArticle {
   publishTime: string;
   hotScore?: number;
   tags?: string[];
+}
+
+export interface WeiboHotItem {
+  position: number;
+  word: string;
+  hotValue: number;
+  label?: string; // '新' | '热' | '爆' | '沸' | '荐'
+  category?: string;
+  url: string;
+  rawNote?: string;
+  isTech?: boolean;
+}
+
+export interface BilibiliHotItem {
+  position: number;
+  bvid?: string;
+  title: string;
+  desc?: string;
+  pic?: string;
+  ownerName?: string;
+  viewCount?: number;
+  likeCount?: number;
+  rcmdReason?: string;
+  url: string;
+  isTech?: boolean;
 }
 
 export interface DouyinHotItem {

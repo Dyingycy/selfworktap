@@ -112,45 +112,6 @@ export async function fetchJuejinNews(): Promise<NewsArticle[]> {
   }
 }
 
-export async function fetchHackerNews(): Promise<NewsArticle[]> {
-  try {
-    const topRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json');
-    if (!topRes.ok) return [];
-    const topIds: number[] = (await topRes.json()).slice(0, 10);
-
-    const items = await Promise.all(
-      topIds.map(async (id, idx) => {
-        try {
-          const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
-          if (!itemRes.ok) return null;
-          const data = await itemRes.json();
-          return {
-            id: `hn-${data.id}`,
-            title: data.title || 'Hacker News Item',
-            summary: `Score: ${data.score || 0} | Author: ${data.by || 'anon'} | Comments: ${data.descendants || 0}`,
-            url: data.url || `https://news.ycombinator.com/item?id=${data.id}`,
-            source: 'hackernews' as NewsSource,
-            sourceName: 'Hacker News',
-            publishTime: formatTime(data.time ? new Date(data.time * 1000).toISOString() : ''),
-            hotScore: Math.min(100, (data.score || 50)),
-            tags: ['Global Geek', `${data.score || 0} pts`],
-          };
-        } catch {
-          return null;
-        }
-      })
-    );
-    const result: NewsArticle[] = [];
-    for (const it of items) {
-      if (it) result.push(it);
-    }
-    return result;
-  } catch (error) {
-    console.error('Fetch Hacker News error:', error);
-    return [];
-  }
-}
-
 export async function getAllNews(sourceFilter: NewsSource = 'all'): Promise<NewsArticle[]> {
   const cacheKey = `news_${sourceFilter}`;
   const cached = cache[cacheKey];
@@ -168,20 +129,17 @@ export async function getAllNews(sourceFilter: NewsSource = 'all'): Promise<News
     articles = await fetchV2exNews();
   } else if (sourceFilter === 'github') {
     articles = await fetchJuejinNews();
-  } else if (sourceFilter === 'hackernews') {
-    articles = await fetchHackerNews();
   } else {
-    // Fetch all in parallel
-    const [sspai, ithome, v2ex, juejin, hn] = await Promise.all([
+    // Fetch domestic tech sources in parallel
+    const [sspai, ithome, v2ex, juejin] = await Promise.all([
       fetchSspaiNews(),
       fetchIthomeNews(),
       fetchV2exNews(),
       fetchJuejinNews(),
-      fetchHackerNews(),
     ]);
 
-    // Interleave or sort by hotness
-    articles = [...ithome, ...sspai, ...v2ex, ...juejin, ...hn].sort(
+    // Sort by hotness
+    articles = [...ithome, ...sspai, ...v2ex, ...juejin].sort(
       (a, b) => (b.hotScore || 50) - (a.hotScore || 50)
     );
   }

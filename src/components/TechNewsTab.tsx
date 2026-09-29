@@ -31,7 +31,6 @@ export const TechNewsTab: React.FC<TechNewsTabProps> = ({
     { id: 'sspai', label: '少数派' },
     { id: 'v2ex', label: 'V2EX' },
     { id: 'github', label: '掘金' },
-    { id: 'hackernews', label: 'HN极客' },
   ];
 
   const filteredArticles = useMemo(() => {
@@ -55,8 +54,6 @@ export const TechNewsTab: React.FC<TechNewsTabProps> = ({
         return 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20';
       case 'github':
         return 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20';
-      case 'hackernews':
-        return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
       default:
         return 'bg-zinc-800 text-zinc-300 border-white/10';
     }

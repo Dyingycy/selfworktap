@@ -10,22 +10,31 @@ import { AiChatTab } from '@/components/AiChatTab';
 import { SettingsTab } from '@/components/SettingsTab';
 import { AskAiModal } from '@/components/AskAiModal';
 import { ShareModal } from '@/components/ShareModal';
-import { NewsArticle, NewsSource, DouyinHotItem, DailyBriefing, TodoItem } from '@/types';
+import {
+  NewsArticle,
+  NewsSource,
+  DouyinHotItem,
+  WeiboHotItem,
+  BilibiliHotItem,
+  DailyBriefing,
+  TodoItem,
+} from '@/types';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'workbench' | 'fitness' | 'radar' | 'aichat' | 'settings'>('workbench');
-  const [selectedSource, setSelectedSource] = useState<NewsSource>('all');
 
   // Workbench Data
   const [todos, setTodos] = useState<TodoItem[]>([]);
 
-  // Radar Data states
-  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  // Radar Data states (Mainstream Domestic: Weibo, Bilibili, Douyin, DailyBrief)
+  const [weiboItems, setWeiboItems] = useState<WeiboHotItem[]>([]);
+  const [bilibiliItems, setBilibiliItems] = useState<BilibiliHotItem[]>([]);
   const [douyinItems, setDouyinItems] = useState<DouyinHotItem[]>([]);
   const [briefing, setBriefing] = useState<DailyBriefing | null>(null);
 
   // Loading states
-  const [isLoadingNews, setIsLoadingNews] = useState(false);
+  const [isLoadingWeibo, setIsLoadingWeibo] = useState(false);
+  const [isLoadingBilibili, setIsLoadingBilibili] = useState(false);
   const [isLoadingDouyin, setIsLoadingDouyin] = useState(false);
   const [isLoadingBrief, setIsLoadingBrief] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -67,8 +76,11 @@ export default function Home() {
         }
       }
 
-      const cachedNews = localStorage.getItem('techradar_cache_news');
-      if (cachedNews) setArticles(JSON.parse(cachedNews));
+      const cachedWB = localStorage.getItem('techradar_cache_weibo');
+      if (cachedWB) setWeiboItems(JSON.parse(cachedWB));
+
+      const cachedBL = localStorage.getItem('techradar_cache_bilibili');
+      if (cachedBL) setBilibiliItems(JSON.parse(cachedBL));
 
       const cachedDY = localStorage.getItem('techradar_cache_douyin');
       if (cachedDY) setDouyinItems(JSON.parse(cachedDY));
@@ -80,24 +92,39 @@ export default function Home() {
     }
   }, []);
 
-  // Fetch News
-  const fetchNews = useCallback(async (source: NewsSource = selectedSource) => {
-    setIsLoadingNews(true);
+  // Fetch Weibo Hot Search
+  const fetchWeibo = useCallback(async () => {
+    setIsLoadingWeibo(true);
     try {
-      const res = await fetch(`/api/news?source=${source}`);
+      const res = await fetch('/api/weibo');
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        setArticles(json.data);
-        if (source === 'all') {
-          localStorage.setItem('techradar_cache_news', JSON.stringify(json.data));
-        }
+        setWeiboItems(json.data);
+        localStorage.setItem('techradar_cache_weibo', JSON.stringify(json.data));
       }
     } catch (e) {
-      console.error('Failed to fetch news', e);
+      console.error('Failed to fetch Weibo', e);
     } finally {
-      setIsLoadingNews(false);
+      setIsLoadingWeibo(false);
     }
-  }, [selectedSource]);
+  }, []);
+
+  // Fetch Bilibili Popular Trending
+  const fetchBilibili = useCallback(async () => {
+    setIsLoadingBilibili(true);
+    try {
+      const res = await fetch('/api/bilibili');
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setBilibiliItems(json.data);
+        localStorage.setItem('techradar_cache_bilibili', JSON.stringify(json.data));
+      }
+    } catch (e) {
+      console.error('Failed to fetch Bilibili', e);
+    } finally {
+      setIsLoadingBilibili(false);
+    }
+  }, []);
 
   // Fetch Douyin
   const fetchDouyin = useCallback(async () => {
@@ -140,16 +167,12 @@ export default function Home() {
 
   // Initial load
   useEffect(() => {
-    fetchNews('all');
+    fetchWeibo();
+    fetchBilibili();
     fetchDouyin();
     fetchBriefing(false);
-  }, [fetchNews, fetchDouyin, fetchBriefing]);
+  }, [fetchWeibo, fetchBilibili, fetchDouyin, fetchBriefing]);
 
-  // Handle source switch
-  const handleSelectSource = (src: NewsSource) => {
-    setSelectedSource(src);
-    fetchNews(src);
-  };
 
   // Convert news article to todo
   const handleAddNewsToTodo = (newsTitle: string) => {
@@ -171,20 +194,22 @@ export default function Home() {
   const handleGlobalRefresh = async () => {
     setIsRefreshing(true);
     if (activeTab === 'workbench') {
-      await Promise.all([fetchBriefing(false), fetchNews('all')]);
+      await Promise.all([fetchBriefing(false), fetchWeibo()]);
     } else if (activeTab === 'radar') {
-      await Promise.all([fetchBriefing(true), fetchNews(selectedSource), fetchDouyin()]);
+      await Promise.all([fetchBriefing(true), fetchWeibo(), fetchBilibili(), fetchDouyin()]);
     }
     setIsRefreshing(false);
   };
 
   // Clear Cache
   const handleClearCache = () => {
-    localStorage.removeItem('techradar_cache_news');
+    localStorage.removeItem('techradar_cache_weibo');
+    localStorage.removeItem('techradar_cache_bilibili');
     localStorage.removeItem('techradar_cache_douyin');
     localStorage.removeItem('techradar_cache_brief');
     showToast('本地快照已清除，正在重新拉取最新数据...');
-    fetchNews(selectedSource);
+    fetchWeibo();
+    fetchBilibili();
     fetchDouyin();
     fetchBriefing(true);
   };
@@ -197,7 +222,7 @@ export default function Home() {
       {/* iOS Header */}
       <Header
         activeTab={activeTab}
-        isRefreshing={isRefreshing || isLoadingNews || isLoadingDouyin || isLoadingBrief}
+        isRefreshing={isRefreshing || isLoadingWeibo || isLoadingBilibili || isLoadingDouyin || isLoadingBrief}
         onRefresh={handleGlobalRefresh}
       />
 
@@ -223,17 +248,17 @@ export default function Home() {
         {/* Tab 2: 🏋️ 铁馆打卡 (Fitness Workout Center) */}
         {activeTab === 'fitness' && <FitnessTab />}
 
-        {/* Tab 2: 📰 情报雷达 (Radar: 早报/热榜/抖音) */}
+        {/* Tab 3: 📰 热门雷达 (Radar: 微博/B站/抖音/早报) */}
         {activeTab === 'radar' && (
           <RadarHubTab
             briefing={briefing}
-            articles={articles}
+            weiboItems={weiboItems}
+            bilibiliItems={bilibiliItems}
             douyinItems={douyinItems}
             isLoadingBrief={isLoadingBrief && !briefing}
-            isLoadingNews={isLoadingNews && articles.length === 0}
+            isLoadingWeibo={isLoadingWeibo && weiboItems.length === 0}
+            isLoadingBilibili={isLoadingBilibili && bilibiliItems.length === 0}
             isLoadingDouyin={isLoadingDouyin && douyinItems.length === 0}
-            selectedSource={selectedSource}
-            onSelectSource={handleSelectSource}
             onRefreshBrief={(force) => fetchBriefing(force)}
             onOpenAskAi={(title, content) =>
               setAskAiState({ isOpen: true, title, content })
