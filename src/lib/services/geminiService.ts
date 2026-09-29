@@ -202,3 +202,48 @@ function getDefaultBriefing(articles: NewsArticle[]): DailyBriefing {
     generatedAt: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
   };
 }
+
+export async function decomposeTaskWithAi(
+  taskTitle: string,
+  userApiKey?: string
+): Promise<string[]> {
+  const client = getClient(userApiKey);
+  if (!client) {
+    // Smart heuristic decomposition if key not present
+    return [
+      `梳理「${taskTitle}」的核心目标与交付标准`,
+      `准备所需资料并排查前置阻塞点`,
+      `分步执行核心攻关环节`,
+      `验收成果并做总结收尾`,
+    ];
+  }
+
+  const prompt = `你是一个资深敏捷生产力教练。用户给出了一个待办目标任务：
+"${taskTitle}"
+
+请将其拆解为 3 至 4 个具体、清晰、极易立即着手执行的子步骤（Actionable Subtasks）。
+要求：
+1. 每个步骤简短干练（不超过 15 个字）；
+2. 动词开头（如：梳理...、整理...、制定...、核对...、交付...）；
+3. 严格遵循纯 JSON 字符串数组格式输出，不要有任何多余 markdown 标记、反引号或文字解释。
+格式示例：
+["明确核心需求与指标", "起草初版方案草稿", "与相关方沟通确认", "完成最终交付核对"]`;
+
+  try {
+    const raw = await executeGeminiWithFallback(client, prompt);
+    const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((s: any) => String(s).trim()).filter(Boolean);
+    }
+  } catch (e) {
+    console.warn('AI decomposition failed, fallback to heuristics:', e);
+  }
+
+  return [
+    `明确「${taskTitle}」的关键里程碑`,
+    `收集准备前置材料与清单`,
+    `专注执行关键核心环节`,
+    `自查验收并归档打卡`,
+  ];
+}

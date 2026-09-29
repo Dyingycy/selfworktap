@@ -25,6 +25,7 @@ export const HomeWorkbenchTab: React.FC<HomeWorkbenchTabProps> = ({
   const [currentTime, setCurrentTime] = useState('');
   const [greeting, setGreeting] = useState('');
   const [GreetingIcon, setGreetingIcon] = useState<any>(Sunrise);
+  const [activeFocusTodo, setActiveFocusTodo] = useState<TodoItem | null>(null);
 
   useEffect(() => {
     const updateTime = () => {
@@ -122,12 +123,22 @@ export const HomeWorkbenchTab: React.FC<HomeWorkbenchTabProps> = ({
           <FocusTodoWidget
             externalTodos={todos}
             onTodosChange={onTodosChange}
+            onSelectFocusTodo={(todo) => setActiveFocusTodo(todo)}
+            activeFocusTodoId={activeFocusTodo?.id}
           />
         </div>
 
         {/* Right Column: Pomodoro Focus Timer (Takes 5 cols on desktop) */}
         <div className="md:col-span-5 flex flex-col gap-4">
-          <PomodoroWidget />
+          <PomodoroWidget
+            activeTodo={activeFocusTodo}
+            onClearActiveTodo={() => setActiveFocusTodo(null)}
+            onCompleteActiveTodo={(id) => {
+              const updated = todos.map((t) => (t.id === id ? { ...t, completed: true } : t));
+              onTodosChange(updated);
+              setActiveFocusTodo(null);
+            }}
+          />
         </div>
 
         {/* Bottom Left Column: Quick Notes / Scratchpad (Takes 6 cols) */}

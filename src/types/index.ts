@@ -59,14 +59,33 @@ export interface AskAiResponse {
 // === Personal Workbench Extensions ===
 
 export type TodoPriority = 'high' | 'medium' | 'low';
+export type TodoCategory = 'work' | 'study' | 'life' | 'urgent';
+
+export interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 
 export interface TodoItem {
   id: string;
   title: string;
   completed: boolean;
   priority: TodoPriority;
+  category?: TodoCategory;
+  subTasks?: SubTask[];
+  isAiDecomposing?: boolean;
   createdAt: string;
   sourceNewsTitle?: string;
+}
+
+export interface HabitItem {
+  id: string;
+  title: string;
+  icon: string;
+  target: string;
+  completedToday: boolean;
+  streakCount: number;
 }
 
 export interface QuickLink {
