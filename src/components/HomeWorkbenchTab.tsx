@@ -7,8 +7,7 @@ import { PomodoroWidget } from '@/components/PomodoroWidget';
 import { ScratchpadWidget } from '@/components/ScratchpadWidget';
 import { QuickLauncherWidget } from '@/components/QuickLauncherWidget';
 import { WeatherWidget } from '@/components/WeatherWidget';
-import { FitnessTrackerWidget } from '@/components/FitnessTrackerWidget';
-import { Sparkles, ArrowRight, Sun, Sunset, Moon, Sunrise } from 'lucide-react';
+import { Sparkles, ArrowRight, Sun, Sunset, Moon, Sunrise, Dumbbell } from 'lucide-react';
 
 interface HomeWorkbenchTabProps {
   briefing: DailyBriefing | null;
@@ -75,6 +74,16 @@ export const HomeWorkbenchTab: React.FC<HomeWorkbenchTabProps> = ({
           <p className="text-xs text-zinc-400">
             {briefing?.quoteOfTheDay ? `“${briefing.quoteOfTheDay}”` : '把目标分解为行动，让思考产生价值。'}
           </p>
+          <div className="pt-1">
+            <button
+              onClick={() => onNavigateToTab('fitness')}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold active:scale-95 transition-all"
+            >
+              <Dumbbell className="w-3.5 h-3.5 text-rose-400" />
+              <span>今日力量打卡 · 铁馆记一组</span>
+              <ArrowRight className="w-3 h-3 text-rose-400" />
+            </button>
+          </div>
         </div>
 
         <div className="flex items-baseline sm:flex-col sm:items-end gap-2 sm:gap-0">
@@ -140,11 +149,6 @@ export const HomeWorkbenchTab: React.FC<HomeWorkbenchTabProps> = ({
               setActiveFocusTodo(null);
             }}
           />
-        </div>
-
-        {/* Full Width Row: Hardcore Fitness & Workout Training Hub */}
-        <div className="md:col-span-12 flex flex-col gap-4">
-          <FitnessTrackerWidget />
         </div>
 
         {/* Bottom Left Column: Quick Notes / Scratchpad (Takes 6 cols) */}

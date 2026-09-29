@@ -21,6 +21,8 @@ export const Header: React.FC<HeaderProps> = ({ onRefresh, isRefreshing, activeT
     switch (activeTab) {
       case 'workbench':
         return '个人实用工作台';
+      case 'fitness':
+        return '硬核铁馆 · 健身打卡';
       case 'radar':
         return '科技与热点雷达';
       case 'aichat':

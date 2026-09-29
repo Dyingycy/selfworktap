@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { LayoutDashboard, Radio, Bot, Settings2 } from 'lucide-react';
+import { LayoutDashboard, Dumbbell, Radio, Bot, Settings2 } from 'lucide-react';
 
 interface BottomTabBarProps {
   activeTab: string;
@@ -11,6 +11,7 @@ interface BottomTabBarProps {
 export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onChangeTab }) => {
   const tabs = [
     { id: 'workbench', label: '工作台', icon: LayoutDashboard, color: 'text-blue-400' },
+    { id: 'fitness', label: '铁馆打卡', icon: Dumbbell, color: 'text-rose-400' },
     { id: 'radar', label: '情报雷达', icon: Radio, color: 'text-amber-400' },
     { id: 'aichat', label: 'AI 智囊', icon: Bot, color: 'text-purple-400' },
     { id: 'settings', label: '设置', icon: Settings2, color: 'text-zinc-400' },

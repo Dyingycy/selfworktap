@@ -143,12 +143,30 @@ export interface WeatherData {
 
 export type MuscleGroup = 'chest' | 'back' | 'legs' | 'shoulders' | 'arms' | 'core' | 'cardio' | 'hiit' | 'stretch';
 
+export interface WorkoutSet {
+  id: string;
+  setNumber: number;
+  weightKg: number;
+  reps: number;
+  completed: boolean;
+}
+
+export interface ExerciseLog {
+  id: string;
+  exerciseName: string;
+  muscleGroup: MuscleGroup;
+  sets: WorkoutSet[];
+}
+
 export interface WorkoutLog {
   id: string;
   date: string; // 'YYYY-MM-DD'
+  title?: string;
   muscleGroups: MuscleGroup[];
   durationMinutes: number;
+  exercisesList?: ExerciseLog[];
   exercises?: string;
+  totalVolumeKg?: number;
   intensity?: 'light' | 'moderate' | 'intense' | 'extreme';
   notes?: string;
   completedAt: string;

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { BottomTabBar } from '@/components/BottomTabBar';
 import { HomeWorkbenchTab } from '@/components/HomeWorkbenchTab';
+import { FitnessTab } from '@/components/FitnessTab';
 import { RadarHubTab } from '@/components/RadarHubTab';
 import { AiChatTab } from '@/components/AiChatTab';
 import { SettingsTab } from '@/components/SettingsTab';
@@ -12,7 +13,7 @@ import { ShareModal } from '@/components/ShareModal';
 import { NewsArticle, NewsSource, DouyinHotItem, DailyBriefing, TodoItem } from '@/types';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'workbench' | 'radar' | 'aichat' | 'settings'>('workbench');
+  const [activeTab, setActiveTab] = useState<'workbench' | 'fitness' | 'radar' | 'aichat' | 'settings'>('workbench');
   const [selectedSource, setSelectedSource] = useState<NewsSource>('all');
 
   // Workbench Data
@@ -210,6 +211,9 @@ export default function Home() {
             onTodosChange={setTodos}
           />
         )}
+
+        {/* Tab 2: 🏋️ 铁馆打卡 (Fitness Workout Center) */}
+        {activeTab === 'fitness' && <FitnessTab />}
 
         {/* Tab 2: 📰 情报雷达 (Radar: 早报/热榜/抖音) */}
         {activeTab === 'radar' && (
