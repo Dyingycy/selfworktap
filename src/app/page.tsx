@@ -57,7 +57,15 @@ export default function Home() {
   useEffect(() => {
     try {
       const cachedTodos = localStorage.getItem('techradar_todos');
-      if (cachedTodos) setTodos(JSON.parse(cachedTodos));
+      if (cachedTodos) {
+        const parsed = JSON.parse(cachedTodos);
+        if (Array.isArray(parsed)) {
+          const dummyIds = new Set(['todo-1', 'todo-2', 'todo-3']);
+          const realTodos = parsed.filter((t: any) => !dummyIds.has(t.id));
+          setTodos(realTodos);
+          localStorage.setItem('techradar_todos', JSON.stringify(realTodos));
+        }
+      }
 
       const cachedNews = localStorage.getItem('techradar_cache_news');
       if (cachedNews) setArticles(JSON.parse(cachedNews));

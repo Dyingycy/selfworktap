@@ -31,10 +31,10 @@ interface FocusTodoWidgetProps {
 }
 
 const DEFAULT_HABITS: HabitItem[] = [
-  { id: 'h-1', title: '充足饮水 2L', icon: '💧', target: '8 杯水', completedToday: false, streakCount: 3 },
-  { id: 'h-2', title: '运动与散步', icon: '🏃', target: '30 分钟', completedToday: false, streakCount: 5 },
-  { id: 'h-3', title: '深度阅读', icon: '📖', target: '15 页', completedToday: false, streakCount: 2 },
-  { id: 'h-4', title: '核心成果交付', icon: '💻', target: '今日攻坚', completedToday: false, streakCount: 4 },
+  { id: 'h-1', title: '充足饮水 2L', icon: '💧', target: '8 杯水', completedToday: false, streakCount: 0 },
+  { id: 'h-2', title: '运动与散步', icon: '🏃', target: '30 分钟', completedToday: false, streakCount: 0 },
+  { id: 'h-3', title: '深度阅读', icon: '📖', target: '15 页', completedToday: false, streakCount: 0 },
+  { id: 'h-4', title: '核心成果交付', icon: '💻', target: '今日攻坚', completedToday: false, streakCount: 0 },
 ];
 
 export const FocusTodoWidget: React.FC<FocusTodoWidgetProps> = ({
@@ -80,52 +80,32 @@ export const FocusTodoWidget: React.FC<FocusTodoWidgetProps> = ({
     }
   };
 
-  // Load from localStorage or sync with external
+  // Load from localStorage or sync with external (filter out any dummy demo todos)
   useEffect(() => {
     if (externalTodos && externalTodos.length > 0) {
-      setTodos(externalTodos);
+      const dummyIds = new Set(['todo-1', 'todo-2', 'todo-3']);
+      const filtered = externalTodos.filter((t) => !dummyIds.has(t.id));
+      setTodos(filtered);
     } else {
       try {
         const saved = localStorage.getItem('techradar_todos');
         if (saved) {
-          setTodos(JSON.parse(saved));
-        } else {
-          const initial: TodoItem[] = [
-            {
-              id: 'todo-1',
-              title: '探索个人工作台与重庆/泸州天气',
-              completed: true,
-              priority: 'high',
-              category: 'work',
-              createdAt: '今日',
-            },
-            {
-              id: 'todo-2',
-              title: '点击右侧「AI 拆解」体验智能子任务拆分',
-              completed: false,
-              priority: 'high',
-              category: 'work',
-              createdAt: '今日',
-              subTasks: [
-                { id: 'sub-1', title: '点击魔法棒按钮召唤 Gemini', completed: true },
-                { id: 'sub-2', title: '智能生成 3~4 个可执行子动作', completed: false },
-                { id: 'sub-3', title: '逐项勾选击溃拖延症', completed: false },
-              ],
-            },
-            {
-              id: 'todo-3',
-              title: '启动一次关联任务的番茄专注时钟',
-              completed: false,
-              priority: 'medium',
-              category: 'study',
-              createdAt: '今日',
-            },
-          ];
-          setTodos(initial);
-          localStorage.setItem('techradar_todos', JSON.stringify(initial));
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            const dummyIds = new Set(['todo-1', 'todo-2', 'todo-3']);
+            const realTodos = parsed.filter((t: TodoItem) => !dummyIds.has(t.id));
+            setTodos(realTodos);
+            localStorage.setItem('techradar_todos', JSON.stringify(realTodos));
+            if (onTodosChange) onTodosChange(realTodos);
+            return;
+          }
         }
+        setTodos([]);
+        localStorage.setItem('techradar_todos', JSON.stringify([]));
+        if (onTodosChange) onTodosChange([]);
       } catch (e) {
         console.error(e);
+        setTodos([]);
       }
     }
 

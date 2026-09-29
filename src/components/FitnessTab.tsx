@@ -96,21 +96,24 @@ export const FitnessTab: React.FC = () => {
     }
   };
 
-  // Initial load
+  // Initial load: load only user's genuine logs, purging any previously seeded dummy logs
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setLogs(parsed);
+        if (Array.isArray(parsed)) {
+          const dummyIds = new Set(['log-1', 'log-2', 'log-3', 'log-4', 'log-5', 'log-6', 'log-7']);
+          const realLogs = parsed.filter((l: WorkoutLog) => !dummyIds.has(l.id));
+          setLogs(realLogs);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(realLogs));
           return;
         }
       }
-      setLogs(INITIAL_WORKOUT_LOGS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_WORKOUT_LOGS));
+      setLogs([]);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
     } catch (e) {
-      setLogs(INITIAL_WORKOUT_LOGS);
+      setLogs([]);
     }
   }, []);
 
@@ -127,35 +130,13 @@ export const FitnessTab: React.FC = () => {
   const [workoutDate, setWorkoutDate] = useState<string>(
     () => new Date().toISOString().split('T')[0]
   );
-  const [workoutTitle, setWorkoutTitle] = useState<string>('力量轰炸训练');
-  const [durationMinutes, setDurationMinutes] = useState<number>(55);
-  const [intensity, setIntensity] = useState<'light' | 'moderate' | 'intense' | 'extreme'>('intense');
+  const [workoutTitle, setWorkoutTitle] = useState<string>('');
+  const [durationMinutes, setDurationMinutes] = useState<number>(45);
+  const [intensity, setIntensity] = useState<'light' | 'moderate' | 'intense' | 'extreme'>('moderate');
   const [workoutNotes, setWorkoutNotes] = useState<string>('');
 
-  // Selected exercises for today's session
-  const [activeExercises, setActiveExercises] = useState<ExerciseLog[]>([
-    {
-      id: 'active-ex-1',
-      exerciseName: '杠铃平板卧推',
-      muscleGroup: 'chest',
-      sets: [
-        { id: 's-init-1', setNumber: 1, weightKg: 60, reps: 12, completed: true },
-        { id: 's-init-2', setNumber: 2, weightKg: 75, reps: 10, completed: true },
-        { id: 's-init-3', setNumber: 3, weightKg: 80, reps: 8, completed: false },
-        { id: 's-init-4', setNumber: 4, weightKg: 85, reps: 6, completed: false },
-      ],
-    },
-    {
-      id: 'active-ex-2',
-      exerciseName: '哑铃上斜卧推',
-      muscleGroup: 'chest',
-      sets: [
-        { id: 's-init-2-1', setNumber: 1, weightKg: 24, reps: 10, completed: false },
-        { id: 's-init-2-2', setNumber: 2, weightKg: 26, reps: 8, completed: false },
-        { id: 's-init-2-3', setNumber: 3, weightKg: 26, reps: 8, completed: false },
-      ],
-    },
-  ]);
+  // Selected exercises for today's session (starts completely clean!)
+  const [activeExercises, setActiveExercises] = useState<ExerciseLog[]>([]);
 
   // Exercise Picker Drawer / Section State
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState<MuscleGroup>('chest');
@@ -378,17 +359,30 @@ export const FitnessTab: React.FC = () => {
     playSound('finish');
     showToast('🎉 恭喜完成训练打卡！铁铸身躯，意志永存！');
 
+    // Reset logger state for next session
+    setActiveExercises([]);
+    setWorkoutTitle('');
+    setWorkoutNotes('');
+
     // Switch to calendar to see results
     setActiveSubTab('calendar');
     setSelectedCalendarDate(workoutDate);
   };
 
-  // Delete a saved log
+  // Delete a single saved log
   const handleDeleteLog = (logId: string) => {
     if (window.confirm('确认要删除这条训练打卡记录吗？')) {
       const filtered = logs.filter((l) => l.id !== logId);
       saveLogs(filtered);
       showToast('已删除训练记录');
+    }
+  };
+
+  // Clear all saved workout logs
+  const handleClearAllLogs = () => {
+    if (window.confirm('确认清空所有历史健身记录吗？清空后将从零开始记录。')) {
+      saveLogs([]);
+      showToast('已清空全部训练记录');
     }
   };
 
@@ -570,8 +564,14 @@ export const FitnessTab: React.FC = () => {
                 <Trophy className="w-3 h-3 text-purple-400" /> 最常练部位
               </span>
               <div className="text-base font-bold text-purple-300 mt-1 truncate">
-                {MUSCLE_GROUPS_META[mostTrainedMuscle.group]?.icon}{' '}
-                {MUSCLE_GROUPS_META[mostTrainedMuscle.group]?.name}
+                {logs.length > 0 && mostTrainedMuscle.count > 0 ? (
+                  <>
+                    {MUSCLE_GROUPS_META[mostTrainedMuscle.group]?.icon}{' '}
+                    {MUSCLE_GROUPS_META[mostTrainedMuscle.group]?.name}
+                  </>
+                ) : (
+                  <span className="text-xs text-zinc-500 font-normal">暂无打卡</span>
+                )}
               </div>
             </div>
           </div>
@@ -1399,10 +1399,32 @@ export const FitnessTab: React.FC = () => {
               <Clock className="w-4 h-4 text-rose-400" />
               历史训练打卡流水 ({logs.length} 次)
             </h3>
-            <span className="text-xs text-zinc-400">按打卡时间倒序呈现</span>
+            {logs.length > 0 && (
+              <button
+                onClick={handleClearAllLogs}
+                className="px-2.5 py-1 rounded-xl bg-zinc-800/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 text-xs transition-colors flex items-center gap-1 border border-white/5"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>清空全部</span>
+              </button>
+            )}
           </div>
 
-          <div className="space-y-3">
+          {logs.length === 0 ? (
+            <div className="p-12 text-center rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/30 space-y-3">
+              <Dumbbell className="w-10 h-10 text-zinc-600 mx-auto" />
+              <p className="text-sm font-semibold text-zinc-300">暂无任何历史训练打卡记录</p>
+              <p className="text-xs text-zinc-500">点击「今日开练」记录您的第一场力量轰炸！</p>
+              <button
+                onClick={() => setActiveSubTab('logger')}
+                className="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-xs font-semibold transition-all inline-flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                开启今日第一练
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
             {logs.map((log) => {
               const primaryGroup = log.muscleGroups[0] || 'chest';
               const meta = MUSCLE_GROUPS_META[primaryGroup];
@@ -1472,6 +1494,7 @@ export const FitnessTab: React.FC = () => {
               );
             })}
           </div>
+          )}
         </div>
       )}
     </div>

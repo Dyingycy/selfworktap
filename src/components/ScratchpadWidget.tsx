@@ -12,9 +12,7 @@ export const ScratchpadWidget: React.FC = () => {
     try {
       const saved = localStorage.getItem('techradar_scratchpad');
       if (saved) setContent(saved);
-      else {
-        setContent('💡 随手记录闪念与临时备忘：\n- 支持自动保存\n- 点击下方 AI 按钮可一键整理格式');
-      }
+      else setContent('');
     } catch (e) {
       console.error(e);
     }
