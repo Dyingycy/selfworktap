@@ -7,6 +7,7 @@ import { PomodoroWidget } from '@/components/PomodoroWidget';
 import { ScratchpadWidget } from '@/components/ScratchpadWidget';
 import { QuickLauncherWidget } from '@/components/QuickLauncherWidget';
 import { WeatherWidget } from '@/components/WeatherWidget';
+import { FitnessTrackerWidget } from '@/components/FitnessTrackerWidget';
 import { Sparkles, ArrowRight, Sun, Sunset, Moon, Sunrise } from 'lucide-react';
 
 interface HomeWorkbenchTabProps {
@@ -139,6 +140,11 @@ export const HomeWorkbenchTab: React.FC<HomeWorkbenchTabProps> = ({
               setActiveFocusTodo(null);
             }}
           />
+        </div>
+
+        {/* Full Width Row: Hardcore Fitness & Workout Training Hub */}
+        <div className="md:col-span-12 flex flex-col gap-4">
+          <FitnessTrackerWidget />
         </div>
 
         {/* Bottom Left Column: Quick Notes / Scratchpad (Takes 6 cols) */}

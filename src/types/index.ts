@@ -138,3 +138,18 @@ export interface WeatherData {
   daily: DailyForecast[];
   updatedAt: string;
 }
+
+// === Fitness & Workout Training Types ===
+
+export type MuscleGroup = 'chest' | 'back' | 'legs' | 'shoulders' | 'arms' | 'core' | 'cardio' | 'hiit' | 'stretch';
+
+export interface WorkoutLog {
+  id: string;
+  date: string; // 'YYYY-MM-DD'
+  muscleGroups: MuscleGroup[];
+  durationMinutes: number;
+  exercises?: string;
+  intensity?: 'light' | 'moderate' | 'intense' | 'extreme';
+  notes?: string;
+  completedAt: string;
+}
